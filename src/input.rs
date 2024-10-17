@@ -4,6 +4,7 @@ use crate::prelude::screen_height;
 use crate::prelude::screen_width;
 use crate::Vec2;
 use crate::{get_context, get_quad_context};
+use rayon::prelude::*;
 pub use miniquad::{KeyCode, MouseButton};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -76,6 +77,16 @@ pub fn simulate_mouse_with_touch(option: bool) {
 }
 
 /// Return touches with positions in pixels.
+#[cfg(target_os = "windows")]
+pub fn touches() -> Vec<Touch> {
+    let context = get_context();
+    if !context.touches_queue.is_empty() {
+        context.touches_queue.pop_front().into_par_iter().collect()
+    }else {
+        context.touches.values().cloned().collect()
+    }
+}
+#[cfg(not(target_os = "windows"))]
 pub fn touches() -> Vec<Touch> {
     get_context().touches.values().cloned().collect()
 }
