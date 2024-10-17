@@ -42,7 +42,6 @@ use miniquad::*;
 use std::collections::{HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;
-use std::collections::VecDeque;
 
 mod exec;
 mod quad_gl;
@@ -150,7 +149,7 @@ use crate::{
 
 use glam::{vec2, Mat4, Vec2};
 
-struct Context {
+struct Context{
     audio_context: audio::AudioContext,
 
     screen_width: f32,
@@ -165,7 +164,7 @@ struct Context {
     mouse_pressed: HashSet<MouseButton>,
     mouse_released: HashSet<MouseButton>,
     touches: HashMap<u64, input::Touch>,
-    touches_queue: VecDeque<input::Touch>,
+    touches_vec: Vec<input::Touch>,
     chars_pressed_queue: Vec<char>,
     chars_pressed_ui_queue: Vec<char>,
     mouse_position: Vec2,
@@ -288,7 +287,7 @@ impl Context {
             mouse_pressed: HashSet::new(),
             mouse_released: HashSet::new(),
             touches: HashMap::new(),
-            touches_queue: VecDeque::new(),
+            touches_vec: Vec::new(),
             mouse_position: vec2(0., 0.),
             mouse_wheel: vec2(0., 0.),
 
@@ -544,28 +543,26 @@ impl EventHandler for Stage {
     ) {
         let context = get_context();
 
-        if phase != TouchPhase::Started {
-            context.touches.insert(
+        context.touches.insert(
+            id,
+            input::Touch {
                 id,
-                input::Touch {
-                    id,
-                    phase: phase.into(),
-                    position: Vec2::new(x, y),
-                    time,
-                },
-            );
-        }else if phase == TouchPhase::Started {
-            context.touches_queue.push_back(
-                input::Touch {
-                    id,
-                    phase: phase.into(),
-                    position: Vec2::new(x, y),
-                    time,
-                },
-            );
-        }
+                phase: phase.into(),
+                position: Vec2::new(x, y),
+                time,
+            },
+        );
 
-         if context.simulate_mouse_with_touch {
+        context.touches_vec.push(     
+            input::Touch {
+            id,
+            phase: phase.into(),
+            position: Vec2::new(x, y),
+            time,
+        });
+
+
+        if context.simulate_mouse_with_touch {
             if phase == TouchPhase::Started {
                 self.mouse_button_down_event(ctx, MouseButton::Left, x, y);
             }
@@ -583,6 +580,7 @@ impl EventHandler for Stage {
             .input_events
             .iter_mut()
             .for_each(|arr| arr.push(MiniquadInputEvent::Touch { phase, id, x, y, time }));
+
     }
 
     #[cfg(not(target_os = "windows"))]
