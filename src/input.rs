@@ -87,17 +87,25 @@ pub fn simulate_mouse_with_touch(option: bool) {
 pub fn touches() -> Vec<Touch> {
     let context = get_context();
     let mut touches: Vec<Touch> = context.touches.values().cloned().collect();
-    touches.iter_mut().for_each(|touch| {
+    let touches: Vec<Touch> = touches.iter_mut().filter_map(|touch| {
         let touches_last = context.touches_last.clone();
         match touches_last.get(&touch.id) {
-            Some(t) => {},
+            Some(_) => {
+                Some(touch.clone())
+            },
             None => {
-                if touch.phase != TouchPhase::Started {
+                if touch.phase == TouchPhase::Moved {
                     touch.phase = TouchPhase::Started;
+                    println!("g");
+                    Some(touch.clone())
+                } else if touch.phase == TouchPhase::Ended {
+                    None
+                } else {
+                    Some(touch.clone())
                 }
             }
         }
-    });
+    }).collect();
 
     touches.iter().for_each(|touch| {
         get_context().touches_last.insert(
