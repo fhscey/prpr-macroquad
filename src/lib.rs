@@ -549,7 +549,7 @@ impl EventHandler for Stage {
                 position: Vec2::new(x, y),
                 time,
                 has_handled: false,
-                to_be_removed: false,
+                to_be_removed: phase == TouchPhase::Ended,
             },
         );
 
