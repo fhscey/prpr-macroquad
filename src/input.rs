@@ -35,15 +35,6 @@ pub struct Touch {
     pub time: f64,
 }
 
-#[derive(Clone, Debug)]
-pub struct Touch_last {
-    pub id: u64,
-    pub phase: TouchPhase,
-    pub position: Vec2,
-    pub time: f64,
-    pub is_blocked: bool,
-}
-
 /// Constrain mouse to window
 pub fn set_cursor_grab(grab: bool) {
     let context = get_context();
@@ -86,73 +77,6 @@ pub fn simulate_mouse_with_touch(option: bool) {
 }
 
 /// Return touches with positions in pixels.
-#[cfg(target_os = "windows")]
-pub fn touches() -> Vec<Touch> {
-    let context = get_context();
-    let mut touches: Vec<Touch> = context.touches.values().cloned().collect();
-    let touches_last = context.touches_last.clone();
-    let mut touches: Vec<Touch_last> = touches.iter_mut().filter_map(|touch| {
-        let mut touch = Touch_last {
-            id: touch.id,
-            phase: touch.phase,
-            position: Vec2::new(touch.position.x, touch.position.y),
-            time: touch.time,
-            is_blocked: false,
-        };
-        match touches_last.get(&touch.id) {
-            Some(_) => Some(touch.clone()),
-            None => {
-                if touch.phase == TouchPhase::Moved {
-                    touch.phase = TouchPhase::Started;
-                    println!("g");
-                    Some(touch.clone())
-                } else if touch.phase == TouchPhase::Ended {
-                    let k = touch.id;
-                    println!("n:{k}");
-                    touch.phase = TouchPhase::Started;
-                    touch.is_blocked = true;
-                    Some(touch.clone())
-                } else {
-                    Some(touch.clone())
-                }
-            }
-        }
-    }).collect();
-    for (_,t) in touches_last {
-        if t.is_blocked == true {
-            touches.push(
-                Touch_last {
-                    id: t.id,
-                    phase: TouchPhase::Ended,
-                    position: Vec2::new(t.position.x, t.position.y),
-                    time: t.time,
-                    is_blocked: false,
-                }
-            );
-        }
-    }
-    let touches: Vec<Touch> = touches.iter().filter_map(|touch| {
-        get_context().touches_last.insert(
-            touch.id,
-            Touch_last {
-                id: touch.id,
-                phase: touch.phase.into(),
-                position: Vec2::new(touch.position.x, touch.position.y),
-                time: touch.time,
-                is_blocked: touch.is_blocked,
-            }
-        );
-        let touch = Touch {
-            id: touch.id,
-            phase: touch.phase.into(),
-            position: Vec2::new(touch.position.x, touch.position.y),
-            time: touch.time,
-        };
-        Some(touch.clone())
-    }).collect();
-    touches
-}
-#[cfg(not(target_os = "windows"))]
 pub fn touches() -> Vec<Touch> {
     get_context().touches.values().cloned().collect()
 }
