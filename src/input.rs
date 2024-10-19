@@ -33,7 +33,6 @@ pub struct Touch {
     pub phase: TouchPhase,
     pub position: Vec2,
     pub time: f64,
-    pub is_blocked: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -92,7 +91,14 @@ pub fn touches() -> Vec<Touch> {
     let context = get_context();
     let mut touches: Vec<Touch> = context.touches.values().cloned().collect();
     let touches_last = context.touches_last.clone();
-    let mut touches: Vec<Touch> = touches.iter_mut().filter_map(|touch| {
+    let mut touches: Vec<Touch_last> = touches.iter_mut().filter_map(|touch| {
+        let mut touch = Touch_last {
+            id: touch.id,
+            phase: touch.phase,
+            position: Vec2::new(touch.position.x, touch.position.y),
+            time: touch.time,
+            is_blocked: false,
+        };
         match touches_last.get(&touch.id) {
             Some(_) => Some(touch.clone()),
             None => {
@@ -115,7 +121,7 @@ pub fn touches() -> Vec<Touch> {
     for (_,t) in touches_last {
         if t.is_blocked == true {
             touches.push(
-                Touch {
+                Touch_last {
                     id: t.id,
                     phase: TouchPhase::Ended,
                     position: Vec2::new(t.position.x, t.position.y),
@@ -125,7 +131,7 @@ pub fn touches() -> Vec<Touch> {
             );
         }
     }
-    touches.iter().for_each(|touch| {
+    let touches: Vec<Touch> = touches.iter().filter_map(|touch| {
         get_context().touches_last.insert(
             touch.id,
             Touch_last {
@@ -136,7 +142,14 @@ pub fn touches() -> Vec<Touch> {
                 is_blocked: touch.is_blocked,
             }
         );
-    });
+        let touch = Touch {
+            id: touch.id,
+            phase: touch.phase.into(),
+            position: Vec2::new(touch.position.x, touch.position.y),
+            time: touch.time,
+        };
+        Some(touch.clone())
+    }).collect();
     touches
 }
 #[cfg(not(target_os = "windows"))]

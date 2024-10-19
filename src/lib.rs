@@ -550,7 +550,6 @@ impl EventHandler for Stage {
                 phase: phase.into(),
                 position: Vec2::new(x, y),
                 time,
-                is_blocked: false,
             },
         );
 
