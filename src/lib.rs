@@ -164,7 +164,7 @@ struct Context{
     mouse_pressed: HashSet<MouseButton>,
     mouse_released: HashSet<MouseButton>,
     touches: HashMap<u64, input::Touch>,
-    touches_last: HashMap<u64, input::Touch_last>,
+    touches_last: HashMap<u64, input::Touch>,
     chars_pressed_queue: Vec<char>,
     chars_pressed_ui_queue: Vec<char>,
     mouse_position: Vec2,
@@ -550,6 +550,7 @@ impl EventHandler for Stage {
                 phase: phase.into(),
                 position: Vec2::new(x, y),
                 time,
+                is_blocked: false,
             },
         );
 

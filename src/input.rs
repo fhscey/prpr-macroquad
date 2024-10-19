@@ -33,12 +33,7 @@ pub struct Touch {
     pub phase: TouchPhase,
     pub position: Vec2,
     pub time: f64,
-}
-
-#[derive(Clone, Debug)]
-pub struct Touch_last {
-    pub id: u64,
-    pub last_phase: TouchPhase,
+    pub is_blocked: bool,
 }
 
 /// Constrain mouse to window
@@ -87,32 +82,49 @@ pub fn simulate_mouse_with_touch(option: bool) {
 pub fn touches() -> Vec<Touch> {
     let context = get_context();
     let mut touches: Vec<Touch> = context.touches.values().cloned().collect();
-    let touches: Vec<Touch> = touches.iter_mut().filter_map(|touch| {
-        let touches_last = context.touches_last.clone();
+    let touches_last = context.touches_last.clone();
+    let mut touches: Vec<Touch> = touches.iter_mut().filter_map(|touch| {
         match touches_last.get(&touch.id) {
-            Some(_) => {
-                Some(touch.clone())
-            },
+            Some(_) => Some(touch.clone()),
             None => {
                 if touch.phase == TouchPhase::Moved {
                     touch.phase = TouchPhase::Started;
                     println!("g");
                     Some(touch.clone())
                 } else if touch.phase == TouchPhase::Ended {
-                    None
+                    let k = touch.id;
+                    println!("n:{k}");
+                    touch.phase = TouchPhase::Started;
+                    touch.is_blocked = true;
+                    Some(touch.clone())
                 } else {
                     Some(touch.clone())
                 }
             }
         }
     }).collect();
-
+    for (_,t) in touches_last {
+        if t.is_blocked == true {
+            touches.push(
+                Touch {
+                    id: t.id,
+                    phase: TouchPhase::Ended,
+                    position: Vec2::new(t.position.x, t.position.y),
+                    time: t.time,
+                    is_blocked: false,
+                }
+            );
+        }
+    }
     touches.iter().for_each(|touch| {
         get_context().touches_last.insert(
             touch.id,
-            Touch_last {
+            Touch {
                 id: touch.id,
-                last_phase: touch.phase.into(),
+                phase: touch.phase.into(),
+                position: Vec2::new(touch.position.x, touch.position.y),
+                time: touch.time,
+                is_blocked: touch.is_blocked,
             }
         );
     });
