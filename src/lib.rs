@@ -164,7 +164,7 @@ struct Context{
     mouse_pressed: HashSet<MouseButton>,
     mouse_released: HashSet<MouseButton>,
     touches: HashMap<u64, input::Touch>,
-    touches_last: HashMap<u64, input::Touch>,
+    touches_last: HashMap<u64, input::Touch_last>,
     chars_pressed_queue: Vec<char>,
     chars_pressed_ui_queue: Vec<char>,
     mouse_position: Vec2,

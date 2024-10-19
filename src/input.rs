@@ -36,6 +36,15 @@ pub struct Touch {
     pub is_blocked: bool,
 }
 
+#[derive(Clone, Debug)]
+pub struct Touch_last {
+    pub id: u64,
+    pub phase: TouchPhase,
+    pub position: Vec2,
+    pub time: f64,
+    pub is_blocked: bool,
+}
+
 /// Constrain mouse to window
 pub fn set_cursor_grab(grab: bool) {
     let context = get_context();
@@ -119,7 +128,7 @@ pub fn touches() -> Vec<Touch> {
     touches.iter().for_each(|touch| {
         get_context().touches_last.insert(
             touch.id,
-            Touch {
+            Touch_last {
                 id: touch.id,
                 phase: touch.phase.into(),
                 position: Vec2::new(touch.position.x, touch.position.y),
