@@ -164,7 +164,7 @@ struct Context{
     mouse_pressed: HashSet<MouseButton>,
     mouse_released: HashSet<MouseButton>,
     touches: HashMap<u64, input::Touch>,
-    touches_vec: Vec<input::Touch>,
+    touches_last: HashMap<u64, input::Touch_last>,
     chars_pressed_queue: Vec<char>,
     chars_pressed_ui_queue: Vec<char>,
     mouse_position: Vec2,
@@ -287,7 +287,7 @@ impl Context {
             mouse_pressed: HashSet::new(),
             mouse_released: HashSet::new(),
             touches: HashMap::new(),
-            touches_vec: Vec::new(),
+            touches_last: HashMap::new(),
             mouse_position: vec2(0., 0.),
             mouse_wheel: vec2(0., 0.),
 
@@ -531,59 +531,7 @@ impl EventHandler for Stage {
             context.mouse_position = Vec2::new(x, y);
         }
     }
-    #[cfg(target_os = "windows")]
-    fn touch_event(
-        &mut self,
-        ctx: &mut miniquad::Context,
-        phase: TouchPhase,
-        id: u64,
-        x: f32,
-        y: f32,
-        time: f64,
-    ) {
-        let context = get_context();
 
-        context.touches.insert(
-            id,
-            input::Touch {
-                id,
-                phase: phase.into(),
-                position: Vec2::new(x, y),
-                time,
-            },
-        );
-
-        context.touches_vec.push(     
-            input::Touch {
-            id,
-            phase: phase.into(),
-            position: Vec2::new(x, y),
-            time,
-        });
-
-
-        if context.simulate_mouse_with_touch {
-            if phase == TouchPhase::Started {
-                self.mouse_button_down_event(ctx, MouseButton::Left, x, y);
-            }
-
-            if phase == TouchPhase::Ended {
-                self.mouse_button_up_event(ctx, MouseButton::Left, x, y);
-            }
-
-            if phase == TouchPhase::Moved {
-                self.mouse_motion_event(ctx, x, y);
-            }
-        };
-
-        context
-            .input_events
-            .iter_mut()
-            .for_each(|arr| arr.push(MiniquadInputEvent::Touch { phase, id, x, y, time }));
-
-    }
-
-    #[cfg(not(target_os = "windows"))]
     fn touch_event(
         &mut self,
         ctx: &mut miniquad::Context,

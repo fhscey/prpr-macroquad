@@ -35,6 +35,12 @@ pub struct Touch {
     pub time: f64,
 }
 
+#[derive(Clone, Debug)]
+pub struct Touch_last {
+    pub id: u64,
+    pub last_phase: TouchPhase,
+}
+
 /// Constrain mouse to window
 pub fn set_cursor_grab(grab: bool) {
     let context = get_context();
@@ -79,9 +85,30 @@ pub fn simulate_mouse_with_touch(option: bool) {
 /// Return touches with positions in pixels.
 #[cfg(target_os = "windows")]
 pub fn touches() -> Vec<Touch> {
-    let t= get_context().touches_vec.clone();
-    get_context().touches_vec.clear();
-    t
+    let context = get_context();
+    let mut touches: Vec<Touch> = context.touches.values().cloned().collect();
+    touches.iter_mut().for_each(|touch| {
+        let touches_last = context.touches_last.clone();
+        match touches_last.get(&touch.id) {
+            Some(t) => {},
+            None => {
+                if touch.phase != TouchPhase::Started {
+                    touch.phase = TouchPhase::Started;
+                }
+            }
+        }
+    });
+
+    touches.iter().for_each(|touch| {
+        get_context().touches_last.insert(
+            touch.id,
+            Touch_last {
+                id: touch.id,
+                last_phase: touch.phase.into(),
+            }
+        );
+    });
+    touches
 }
 #[cfg(not(target_os = "windows"))]
 pub fn touches() -> Vec<Touch> {
