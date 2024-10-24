@@ -548,6 +548,7 @@ impl EventHandler for Stage {
                 phase: phase.into(),
                 position: Vec2::new(x, y),
                 time,
+                has_been_handled: false,
                 to_be_removed: false,
             },
         );
