@@ -33,7 +33,6 @@ pub struct Touch {
     pub phase: TouchPhase,
     pub position: Vec2,
     pub time: f64,
-    pub has_been_handled: bool,
     pub to_be_removed: bool,
 }
 
