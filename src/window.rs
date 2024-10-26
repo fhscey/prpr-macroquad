@@ -79,8 +79,8 @@ pub fn request_new_screen_size(width: f32, height: f32) {
 }
 
 /// Toggle whether the window is fullscreen.
-pub fn set_fullscreen(fullscreen: bool, width: i32, height: i32) {
-    get_quad_context().set_fullscreen(fullscreen, width, height);
+pub fn set_fullscreen(fullscreen: bool) {
+    get_quad_context().set_fullscreen(fullscreen);
 }
 
 /// With `set_panic_handler` set to a handler code, macroquad will use
